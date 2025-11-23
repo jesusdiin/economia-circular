@@ -3,12 +3,39 @@ import "dotenv/config";
 
 const GOOGLE_KEY = process.env.GOOGLE_API_KEY;
 
-export async function fetchRecicladoras() {
+const CATEGORIES: Record<string, string[]> = {
+  vidrio: ["vidrio", "reciclaje de vidrio"],
+  madera: ["madera", "reciclaje de madera"],
+  acero: ["acero", "reciclaje de acero", "chatarra"],
+  electronicos: ["electrónicos", "e-waste", "residuos electrónicos"],
+  lodos: ["lodos secos", "residuos industriales"],
+  muebles: ["mobiliario retirado", "muebles"],
+  plastico: ["plástico", "PET", "reciclaje de plástico"],
+  papel: ["papel", "cartón", "reciclaje de papel"],
+  organicos: ["residuos orgánicos", "compostaje"],
+};
+
+const FIELD_MASK = [
+  "places.id",
+  "places.displayName",
+  "places.formattedAddress",
+  "places.location",
+  "places.primaryType",
+  "places.nationalPhoneNumber",
+  "places.internationalPhoneNumber",
+  "places.rating",
+  "places.userRatingCount",
+  "places.googleMapsUri",
+  "places.websiteUri"
+].join(",");
+
+
+async function searchPlaces(textQuery: string) {
   const url = "https://places.googleapis.com/v1/places:searchText";
 
   const body = {
-    textQuery: "centro de reciclaje en Ciudad de México",
-    pageSize: 100,
+    textQuery,
+    pageSize: 50,
     regionCode: "MX",
     languageCode: "es",
   };
@@ -17,23 +44,50 @@ export async function fetchRecicladoras() {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": GOOGLE_KEY,
-      "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.location,places.primaryType",
+      "X-Goog-FieldMask": FIELD_MASK,
     },
   });
 
-  console.log(res.data);
+  return res.data.places || [];
+}
 
-  const results = res.data.places?.map((p: any) => ({
-    place_id: p.id,
-    name: p.displayName?.text,
-    address: p.formattedAddress,
-    location: p.location,
-    types: p.primaryType,
-  })) ?? [];
+export async function fetchAllRecicladoras() {
+  const output: Record<string, any[]> = {};
+  const seen = new Set<string>();
+
+  for (const [category, keywords] of Object.entries(CATEGORIES)) {
+    const query = `${keywords.join(" ")} centro reciclaje CDMX`;
+
+    const places = await searchPlaces(query);
+
+    const mapped = places.map((p: any) => ({
+      place_id: p.id,
+      name: p.displayName?.text,
+      address: p.formattedAddress,
+      location: p.location,
+      type: p.primaryType,
+      rating: p.rating,
+      reviews: p.userRatingCount,
+      maps_url: p.googleMapsUri,
+      website: p.websiteUri,
+      phone_local: p.nationalPhoneNumber,
+      phone_intl: p.internationalPhoneNumber,
+      hours: p.hours,
+      categoria: category,
+    }));
+
+    const unique = mapped.filter((p) => {
+      if (seen.has(p.place_id)) return false;
+      seen.add(p.place_id);
+      return true;
+    });
+
+    output[category] = unique;
+  }
 
   return {
-    total: results.length,
-    results,
+    total_categorias: Object.keys(CATEGORIES).length,
+    total_lugares: [...seen].length,
+    categorias: output,
   };
 }
