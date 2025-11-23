@@ -91,3 +91,59 @@ export async function fetchAllRecicladoras() {
     categorias: output,
   };
 }
+
+
+// 🔍 Buscar solo una categoría
+export async function fetchByCategory(category: string) {
+  if (!CATEGORIES[category]) {
+    throw new Error(`La categoría "${category}" no existe`);
+  }
+
+  const query = `${CATEGORIES[category].join(" ")} centro reciclaje CDMX`;
+  const places = await searchPlaces(query);
+
+  return places.map((p: any) => ({
+    place_id: p.id,
+    name: p.displayName?.text,
+    address: p.formattedAddress,
+    location: p.location,
+    type: p.primaryType,
+    rating: p.rating,
+    reviews: p.userRatingCount,
+    maps_url: p.googleMapsUri,
+    website: p.websiteUri,
+    phone_local: p.nationalPhoneNumber,
+    phone_intl: p.internationalPhoneNumber,
+    hours: p.hours,
+    categoria: category,
+  }));
+}
+
+export async function fetchPlaceById(placeId: string) {
+  const url = `https://places.googleapis.com/v1/places/${placeId}`;
+
+  const res = await axios.get(url, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": GOOGLE_KEY,
+      "X-Goog-FieldMask": FIELD_MASK,
+    },
+  });
+
+  const p = res.data;
+
+  return {
+    place_id: p.id,
+    name: p.displayName?.text,
+    address: p.formattedAddress,
+    location: p.location,
+    type: p.primaryType,
+    rating: p.rating,
+    reviews: p.userRatingCount,
+    maps_url: p.googleMapsUri,
+    website: p.websiteUri,
+    phone_local: p.nationalPhoneNumber,
+    phone_intl: p.internationalPhoneNumber,
+    hours: p.hours,
+  };
+}
