@@ -1,5 +1,5 @@
 import express from "express";
-import recicladoras from "./api/recicladora";
+import recicladoras from "./api/recicladora.js";
 import 'dotenv/config';
 
 

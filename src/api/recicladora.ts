@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { fetchAllRecicladoras } from "./../utils/google";
+import { fetchAllRecicladoras } from "./../utils/google.js";
 
 const router = Router();
 
