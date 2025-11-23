@@ -3,7 +3,7 @@ import "dotenv/config";
 
 const GOOGLE_KEY = process.env.GOOGLE_API_KEY;
 
-const CATEGORIES: Record<string, string[]> = {
+export const CATEGORIES: Record<string, string[]> = {
   vidrio: ["vidrio", "reciclaje de vidrio"],
   madera: ["madera", "reciclaje de madera"],
   acero: ["acero", "reciclaje de acero", "chatarra"],

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { fetchAllRecicladoras, fetchByCategory, fetchPlaceById } from "./../utils/google.js";
+import { CATEGORIES } from "./../utils/google.js";
+
 
 const router = Router();
 
@@ -13,14 +15,13 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Obtener solo una categoría (ej: vidrio, madera, acero, etc.)
-router.get("/:categoria", async (req, res) => {
+router.get("/categorias", (req, res) => {
   try {
-    const categoria = req.params.categoria.toLowerCase();
-    const data = await fetchByCategory(categoria);
-    res.status(200).json(data);
+    res.json({
+      categorias: Object.keys(CATEGORIES)
+    });
   } catch (e: any) {
-    res.status(400).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -34,5 +35,18 @@ router.get("/id/:id", async (req, res) => {
     res.status(400).json({ error: e.message });
   }
 });
+
+
+// Obtener solo una categoría (ej: vidrio, madera, acero, etc.)
+router.get("/:categoria", async (req, res) => {
+  try {
+    const categoria = req.params.categoria.toLowerCase();
+    const data = await fetchByCategory(categoria);
+    res.status(200).json(data);
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 
 export default router;
