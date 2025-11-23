@@ -3,6 +3,13 @@ import "dotenv/config";
 
 const GOOGLE_KEY = process.env.GOOGLE_API_KEY;
 
+
+function cleanText(text?: string): string | undefined {
+  if (!text) return text;
+  return text.replace(/"/g, '\\"'); // escapa comillas dobles
+}
+
+
 export const CATEGORIES: Record<string, string[]> = {
   vidrio: ["vidrio", "reciclaje de vidrio"],
   madera: ["madera", "reciclaje de madera"],
@@ -62,7 +69,7 @@ export async function fetchAllRecicladoras() {
 
     const mapped = places.map((p: any) => ({
       place_id: p.id,
-      name: p.displayName?.text,
+      name: cleanText(p.displayName?.text),
       address: p.formattedAddress,
       location: p.location,
       type: p.primaryType,
@@ -104,7 +111,7 @@ export async function fetchByCategory(category: string) {
 
   return places.map((p: any) => ({
     place_id: p.id,
-    name: p.displayName?.text,
+    name: cleanText(p.displayName?.text),
     address: p.formattedAddress,
     location: p.location,
     type: p.primaryType,
@@ -134,7 +141,7 @@ export async function fetchPlaceById(placeId: string) {
 
   return {
     place_id: p.id,
-    name: p.displayName?.text,
+    name: cleanText(p.displayName?.text),
     address: p.formattedAddress,
     location: p.location,
     type: p.primaryType,
